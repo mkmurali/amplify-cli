@@ -69,12 +69,12 @@ export const buildResourceInternal = async (
 
   // For local invoke we've to use the build timestamp of the binary built
   let timestampToCheck;
-
+  
+  const isWindows = /^win/.test(process.platform);
+  const executableName = isWindows === true ? MAIN_BINARY_WIN : MAIN_BINARY;
+  const executablePath = path.join(outDir, executableName);
+  
   if (forLocalInvoke === true) {
-    const isWindows = /^win/.test(process.platform);
-    const executableName = isWindows === true ? MAIN_BINARY_WIN : MAIN_BINARY;
-    const executablePath = path.join(outDir, executableName);
-
     if (fs.existsSync(executablePath)) {
       timestampToCheck = new Date(fs.statSync(executablePath).mtime);
     }
@@ -85,7 +85,7 @@ export const buildResourceInternal = async (
   if (force === true || !timestampToCheck || isBuildStale(request.srcRoot, timestampToCheck, outDir)) {
     const srcDir = path.join(request.srcRoot, SRC);
     const entryFile = MAIN_SOURCE;
-    const isWindows = /^win/.test(process.platform);
+    // const isWindows = /^win/.test(process.platform);
 
     // Clean and/or create the output directory
     if (fs.existsSync(outDir)) {
@@ -106,7 +106,7 @@ export const buildResourceInternal = async (
     }
 
     // Execute the build command, cwd must be the source file directory (Windows requires it)
-    executeCommand(['build', '-o', outDir, entryFile], true, envVars, srcDir);
+    executeCommand(['build', '-o', executablePath, entryFile], true, envVars, srcDir);
 
     rebuilt = true;
   }
